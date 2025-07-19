@@ -64,3 +64,22 @@ If you want to learn more about building native executables, please consult <htt
 Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+### To remember
+
+1. Install Quarkus CLI
+    ```
+    brew install quarkusio/tap/quarkus
+    ``` 
+2. Use GraalVM
+    ```
+    sdk use java 21.0.2-graalce
+    ```
+3. Package your application into a native executable
+    ```
+    quarkus build --native
+    ```
+4. Run the Quarkus application by directly running the generated binary
+    ```
+   ./target/quarkus-in-action-1.0-SNAPSHOT-runner
+    ```
