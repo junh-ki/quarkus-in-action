@@ -83,3 +83,27 @@ Easily start your REST Web Services
     ```
    ./target/quarkus-in-action-1.0-SNAPSHOT-runner
     ```
+5. List all extensions already installed in the Quarkus application
+   ```
+   quarkus extension list
+   ```
+6. List all available installable extensions
+   ```
+   quarkus extension --installable
+   ```
+7. List the extension categories
+   ```
+   quarkus extension categories
+   quarkus extension list --installable --category "categoryId"
+   quarkus ext list -ic "messaging" --full
+   quarkus ext add "quarkus-messaging-kafka"
+   quarkus ext remove "quarkus-messaging-kafka"
+   ```
+8. Override application.properties with the system property definition
+   ```
+   GREETING="Environment variable value" quarkus dev -Dgreeting="System property value"
+   ```
+9. Override application.properties without the system property definition 
+   ```
+   GREETING="Environment variable value" quarkus dev
+   ```
