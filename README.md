@@ -107,3 +107,4 @@ Easily start your REST Web Services
    ```
    GREETING="Environment variable value" quarkus dev
    ```
+10. When you press the 'c' key in the terminal where your Dev mode application is running, it shows information about all running Dev Services containers.
