@@ -10,6 +10,7 @@
 
     <modules>
         <module>example-service</module>
+        <module>reservation-service</module>
     </modules>
 
     <properties>
