@@ -1,16 +1,19 @@
 package org.acme.reservation.rest;
 
+import io.quarkus.logging.Log;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import lombok.RequiredArgsConstructor;
 import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.InventoryClient;
+import org.acme.reservation.rental.Rental;
+import org.acme.reservation.rental.RentalClient;
 import org.acme.reservation.reservation.Reservation;
 import org.acme.reservation.reservation.ReservationRepository;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
 import java.time.LocalDate;
@@ -20,11 +23,20 @@ import java.util.Map;
 
 @Path("reservation")
 @Produces(MediaType.APPLICATION_JSON)
-@RequiredArgsConstructor
 public class ReservationResource {
 
     private final ReservationRepository reservationRepository;
     private final InventoryClient inventoryClient;
+    private final RentalClient rentalClient;
+
+    // Quarkus CDI doesn't inject qualifiers like @RestClient automatically with Lombok-generated constructors.
+    public ReservationResource(final ReservationRepository reservationRepository,
+                               final InventoryClient inventoryClient,
+                               @RestClient final RentalClient rentalClient) {
+        this.reservationRepository = reservationRepository;
+        this.inventoryClient = inventoryClient;
+        this.rentalClient = rentalClient;
+    }
 
     @GET
     @Path("availability")
@@ -45,6 +57,12 @@ public class ReservationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Reservation make(final Reservation reservation) {
-        return reservationRepository.save(reservation);
+        final Reservation savedReservation = reservationRepository.save(reservation);
+        final String userId = "x";
+        if (reservation.getStartDay().equals(LocalDate.now())) {
+            final Rental rental = this.rentalClient.start(userId, savedReservation.getId());
+            Log.info("Successfully started rental: " + rental);
+        }
+        return savedReservation;
     }
 }
