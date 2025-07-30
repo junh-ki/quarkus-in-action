@@ -12,6 +12,7 @@
         <module>example-service</module>
         <module>reservation-service</module>
         <module>rental-service</module>
+        <module>inventory-service</module>
     </modules>
 
     <properties>
