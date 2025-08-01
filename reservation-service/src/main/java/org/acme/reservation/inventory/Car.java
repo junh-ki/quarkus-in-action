@@ -1,3 +1,16 @@
 package org.acme.reservation.inventory;
 
-public record Car(Long id, String licensePlateNumber, String manufacturer, String model) {}
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Car {
+
+    private Long id;
+    private String licensePlateNumber;
+    private String manufacturer;
+    private String model;
+}
