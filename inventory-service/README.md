@@ -56,3 +56,31 @@ If you want to learn more about building native executables, please consult <htt
 ## Related Guides
 
 - SmallRye GraphQL ([guide](https://quarkus.io/guides/smallrye-graphql)): Create GraphQL Endpoints using the code-first approach from MicroProfile GraphQL
+
+## GraphQL
+
+```graphql
+query {
+  cars {
+    id
+    licensePlateNumber
+    model
+    manufacturer
+  }
+}
+```
+
+```graphql
+mutation {
+  register(car: {
+    licensePlateNumber: "0123"
+    model: "406"
+    manufacturer: "Peugeot"
+  }) {
+    licensePlateNumber
+    model
+    manufacturer
+    id
+  }
+}
+```
