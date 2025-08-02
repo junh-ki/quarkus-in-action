@@ -8,4 +8,29 @@ updates:
   - package-ecosystem: "maven" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "weekly"
+      interval: "daily"
+
+  - package-ecosystem: "maven"
+    directory: "/example-service"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "maven"
+    directory: "/reservation-service"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "maven"
+    directory: "/rental-service"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "maven"
+    directory: "/inventory-service"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "maven"
+    directory: "/inventory-cli"
+    schedule:
+      interval: "daily"
