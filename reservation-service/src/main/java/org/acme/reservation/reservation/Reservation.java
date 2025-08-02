@@ -1,10 +1,12 @@
 package org.acme.reservation.reservation;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
+@Builder
 public class Reservation {
 
     private Long id;
