@@ -12,7 +12,7 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:9000/q/dev/>.
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8086/q/dev/>.
 
 ## Packaging and running the application
 
@@ -55,3 +55,15 @@ If you want to learn more about building native executables, please consult <htt
 
 ## Related Guides
 
+1. Run inventory-service
+
+2. Package the application:
+```cmd
+./mvnw clean package
+```
+
+3. Execute the CLI:
+```cmd
+cd inventory-cli
+java -jar target/quarkus-app/quarkus-run.jar add KNIGHT Pontiac TransAM
+```
