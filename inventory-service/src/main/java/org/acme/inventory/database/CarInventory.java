@@ -31,4 +31,12 @@ public class CarInventory {
     public Long incrementAndGet() {
         return this.ids.incrementAndGet();
     }
+
+    public void add(final Car car) {
+        this.cars.add(car);
+    }
+
+    public void remove(final Car car) {
+        this.cars.remove(car);
+    }
 }
