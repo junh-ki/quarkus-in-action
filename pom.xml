@@ -13,6 +13,7 @@
         <module>reservation-service</module>
         <module>rental-service</module>
         <module>inventory-service</module>
+        <module>inventory-cli</module>
     </modules>
 
     <properties>
