@@ -14,23 +14,33 @@ updates:
     directory: "/example-service"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
 
   - package-ecosystem: "maven"
     directory: "/reservation-service"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
 
   - package-ecosystem: "maven"
     directory: "/rental-service"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
 
   - package-ecosystem: "maven"
     directory: "/inventory-service"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
 
   - package-ecosystem: "maven"
     directory: "/inventory-cli"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    rebase-strategy: "auto"
