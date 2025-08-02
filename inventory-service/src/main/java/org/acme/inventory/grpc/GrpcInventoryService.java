@@ -2,6 +2,7 @@ package org.acme.inventory.grpc;
 
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.logging.Log;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import org.acme.inventory.database.CarInventory;
@@ -18,17 +19,20 @@ public class GrpcInventoryService implements InventoryService {
     CarInventory carInventory;
 
     @Override
-    public Uni<CarResponse> add(final InsertCarRequest insertCarRequest) {
-        final Car car = Car.builder()
-            .licensePlateNumber(insertCarRequest.getLicensePlateNumber())
-            .manufacturer(insertCarRequest.getManufacturer())
-            .model(insertCarRequest.getModel())
-            .id(this.carInventory.incrementAndGet())
-            .build();
-        Log.info("Persisting " + car);
-        this.carInventory.add(car);
-        return Uni.createFrom()
-            .item(CarResponse.newBuilder()
+    public Multi<CarResponse> add(final Multi<InsertCarRequest> insertCarRequests) {
+        return insertCarRequests
+            .map(insertCarRequest -> Car.builder()
+                .licensePlateNumber(insertCarRequest.getLicensePlateNumber())
+                .manufacturer(insertCarRequest.getManufacturer())
+                .model(insertCarRequest.getModel())
+                .id(this.carInventory.incrementAndGet())
+                .build())
+            .onItem()
+            .invoke(car -> {
+                Log.info("Persisting " + car);
+                this.carInventory.add(car);
+            })
+            .map(car -> CarResponse.newBuilder()
                 .setLicensePlateNumber(car.getLicensePlateNumber())
                 .setManufacturer(car.getManufacturer())
                 .setModel(car.getModel())
