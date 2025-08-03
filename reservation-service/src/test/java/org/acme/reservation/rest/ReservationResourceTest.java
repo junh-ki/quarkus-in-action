@@ -2,16 +2,22 @@ package org.acme.reservation.rest;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.common.http.TestHTTPResource;
+import io.quarkus.test.junit.DisabledOnIntegrationTest;
+import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import org.acme.reservation.inventory.Car;
+import org.acme.reservation.inventory.GraphQLInventoryClient;
 import org.acme.reservation.reservation.Reservation;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.Collections;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -22,26 +28,54 @@ class ReservationResourceTest {
     @TestHTTPResource
     URL reservationResource;
 
+    @TestHTTPResource("availability")
+    URL availability;
+
     @Test
-    public void testAvailability() {
+    @DisabledOnIntegrationTest(forArtifactTypes = DisabledOnIntegrationTest.ArtifactType.NATIVE_BINARY)
+    public void testMakingAReservationAndCheckAvailability() {
         // Arrange
-        final String startDate = "2025-03-20";
-        final String endDate = "2025-03-29";
+        final GraphQLInventoryClient graphQLInventoryClientMock = Mockito.mock(GraphQLInventoryClient.class);
+        Mockito.when(graphQLInventoryClientMock.allCars())
+            .thenReturn(Collections.singletonList(new Car(1L, "ABC123", "Peugeot", "406")));
+        QuarkusMock.installMockForType(graphQLInventoryClientMock, GraphQLInventoryClient.class);
+        final String startDate = "2022-01-01";
+        final String endDate = "2022-01-10";
 
         // Act & Assert
-        RestAssured
-            .given()
+
+        // List available cars for the requested timeslot and choose one
+        final Car car = RestAssured.given()
             .queryParam("startDate", startDate)
             .queryParam("endDate", endDate)
             .when()
-            .get(this.reservationResource + "/availability")
+            .get(this.availability)
             .then()
             .statusCode(200)
-            .body("$.size()", is(1))
-            .body("[0].id", is(1))
-            .body("[0].licensePlateNumber", equalTo("ABC123"))
-            .body("[0].manufacturer", equalTo("Peugeot"))
-            .body("[0].model", equalTo("406"));
+            .extract()
+            .as(Car[].class)[0];
+        // Prepare a Reservation object and submit the reservation
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body(Reservation.builder()
+                .carId(car.getId())
+                .startDay(LocalDate.parse(startDate))
+                .endDay(LocalDate.parse(endDate))
+                .build())
+            .when()
+            .post(this.reservationResource)
+            .then()
+            .statusCode(200)
+            .body("carId", is(car.getId().intValue()));
+        // Verify that this car doesn't show as available anymore
+        RestAssured.given()
+            .queryParam("startDate", startDate)
+            .queryParam("endDate", endDate)
+            .when()
+            .get(this.availability)
+            .then()
+            .statusCode(200)
+            .body("findAll { car -> car.id == " + car.getId().intValue() + " }", hasSize(0));
     }
 
     @Test
