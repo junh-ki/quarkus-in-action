@@ -11,14 +11,38 @@ import org.junit.jupiter.api.Test;
 import java.net.URL;
 import java.time.LocalDate;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
+@TestHTTPEndpoint(ReservationResource.class)
 class ReservationResourceTest {
 
-    @TestHTTPEndpoint(ReservationResource.class)
     @TestHTTPResource
     URL reservationResource;
+
+    @Test
+    public void testAvailability() {
+        // Arrange
+        final String startDate = "2025-03-20";
+        final String endDate = "2025-03-29";
+
+        // Act & Assert
+        RestAssured
+            .given()
+            .queryParam("startDate", startDate)
+            .queryParam("endDate", endDate)
+            .when()
+            .get(this.reservationResource + "/availability")
+            .then()
+            .statusCode(200)
+            .body("$.size()", is(1))
+            .body("[0].id", is(1))
+            .body("[0].licensePlateNumber", equalTo("ABC123"))
+            .body("[0].manufacturer", equalTo("Peugeot"))
+            .body("[0].model", equalTo("406"));
+    }
 
     @Test
     public void testReservationIds() {
