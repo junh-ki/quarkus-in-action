@@ -57,3 +57,23 @@ If you want to learn more about building native executables, please consult <htt
 
 - REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
 - ArC ([guide](https://quarkus.io/guides/cdi-reference)): Build time CDI dependency injection
+
+## Integration Test (in native mode)
+1. Switch to GraalVM
+   ```cmd
+   sdk use java 21.0.2-graalce
+   ```
+2. Go back to root and run the integration test in native mode with the module path
+   - if it is for a single service repo
+     ```cmd
+     ./mvnw clean verify -Pnative
+     ```
+   - if it for a module in a mono-repo
+     ```cmd
+      cd ..
+      ./mvnw -pl reservation-service clean verify -Pnative
+     ```
+3. Set it back to the normal Java SDK
+   ```cmd
+   sdk use java 21.0.3-zulu
+   ```
