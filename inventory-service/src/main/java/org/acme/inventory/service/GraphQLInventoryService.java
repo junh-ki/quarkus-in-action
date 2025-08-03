@@ -31,10 +31,10 @@ public class GraphQLInventoryService {
     public boolean remove(final String licensePlateNumber) {
         final List<Car> cars = this.carInventory.getCars();
         return cars.stream()
-                .filter(car -> car.getLicensePlateNumber()
-                        .equals(licensePlateNumber))
-                .findAny()
-                .map(cars::remove)
-                .orElse(false);
+            .filter(car -> car.getLicensePlateNumber()
+                .equals(licensePlateNumber))
+            .findAny()
+            .map(cars::remove)
+            .orElse(false);
     }
 }

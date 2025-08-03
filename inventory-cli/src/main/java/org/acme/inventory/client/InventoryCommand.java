@@ -13,7 +13,7 @@ public class InventoryCommand implements QuarkusApplication {
 
     private static final String USAGE =
         "Usage: inventory <add>|<remove> <license plate number> <manufacturer> <model>";
-    private static final String ACTION_ADD  = "add";
+    private static final String ACTION_ADD = "add";
     private static final String ACTION_REMOVE = "remove";
 
     @GrpcClient("inventory")
