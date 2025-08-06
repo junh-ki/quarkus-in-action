@@ -15,6 +15,7 @@ public class Reservation {
 
     private Long id;
     private Long carId;
+    private String userId;
     private LocalDate startDay;
     private LocalDate endDay;
 
