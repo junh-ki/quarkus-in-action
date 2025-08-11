@@ -22,6 +22,7 @@ public class GrpcInventoryService implements InventoryService {
     private final CarRepository carRepository;
 
     @Override
+    @Blocking
     public Multi<CarResponse> add(final Multi<InsertCarRequest> insertCarRequests) {
         return insertCarRequests
             .map(insertCarRequest -> Car.builder()
