@@ -2,21 +2,24 @@ package org.acme.inventory.grpc;
 
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.logging.Log;
+import io.quarkus.narayana.jta.QuarkusTransaction;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import jakarta.inject.Inject;
-import org.acme.inventory.database.CarInventory;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.acme.inventory.model.Car;
 import org.acme.inventory.model.CarResponse;
 import org.acme.inventory.model.InsertCarRequest;
 import org.acme.inventory.model.InventoryService;
 import org.acme.inventory.model.RemoveCarRequest;
+import org.acme.inventory.repository.CarRepository;
 
 @GrpcService
+@RequiredArgsConstructor
 public class GrpcInventoryService implements InventoryService {
 
-    @Inject
-    CarInventory carInventory;
+    private final CarRepository carRepository;
 
     @Override
     public Multi<CarResponse> add(final Multi<InsertCarRequest> insertCarRequests) {
@@ -25,13 +28,13 @@ public class GrpcInventoryService implements InventoryService {
                 .licensePlateNumber(insertCarRequest.getLicensePlateNumber())
                 .manufacturer(insertCarRequest.getManufacturer())
                 .model(insertCarRequest.getModel())
-                .id(this.carInventory.incrementAndGet())
                 .build())
             .onItem()
-            .invoke(car -> {
-                Log.info("Persisting " + car);
-                this.carInventory.add(car);
-            })
+            .invoke(car -> QuarkusTransaction.requiringNew()
+                .run(() -> {
+                    this.carRepository.persist(car);
+                    Log.info("Persisting " + car);
+                }))
             .map(car -> CarResponse.newBuilder()
                 .setLicensePlateNumber(car.getLicensePlateNumber())
                 .setManufacturer(car.getManufacturer())
@@ -41,13 +44,13 @@ public class GrpcInventoryService implements InventoryService {
     }
 
     @Override
+    @Blocking
+    @Transactional
     public Uni<CarResponse> remove(final RemoveCarRequest removeCarRequest) {
-        return this.carInventory.getCars().stream()
-            .filter(car -> removeCarRequest.getLicensePlateNumber()
-                .equals(car.getLicensePlateNumber()))
-            .findFirst()
+        return this.carRepository
+            .findByLicensePlateNumberOptional(removeCarRequest.getLicensePlateNumber())
             .map(removedCar -> {
-                this.carInventory.remove(removedCar);
+                this.carRepository.delete(removedCar);
                 return Uni.createFrom()
                     .item(CarResponse.newBuilder()
                         .setLicensePlateNumber(removedCar.getLicensePlateNumber())
