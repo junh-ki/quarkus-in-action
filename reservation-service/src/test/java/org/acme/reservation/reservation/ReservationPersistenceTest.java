@@ -1,7 +1,9 @@
 package org.acme.reservation.reservation;
 
+import io.quarkus.logging.Log;
+import io.quarkus.test.hibernate.reactive.panache.TransactionalUniAsserter;
 import io.quarkus.test.junit.QuarkusTest;
-import jakarta.transaction.Transactional;
+import io.quarkus.test.vertx.RunOnVertxContext;
 import org.acme.reservation.entity.Reservation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,8 +14,8 @@ import java.time.LocalDate;
 class ReservationPersistenceTest {
 
     @Test
-    @Transactional
-    public void testCreateReservation() {
+    @RunOnVertxContext
+    public void testCreateReservation(final TransactionalUniAsserter transactionalUniAsserter) {
         // Arrange
         final Reservation reservation = Reservation.builder()
             .startDay(LocalDate.now().plusDays(5))
@@ -21,14 +23,21 @@ class ReservationPersistenceTest {
             .carId(384L)
             .build();
 
-        // Act
-        Reservation.persist(reservation);
-
-        // Assert
-        Assertions.assertNotNull(reservation.getId());
-        Assertions.assertEquals(1, Reservation.count());
-        final Reservation persistedReservation = Reservation.findById(reservation.getId());
-        Assertions.assertNotNull(persistedReservation);
-        Assertions.assertEquals(reservation.getCarId(), persistedReservation.getCarId());
+        // Act & Assert
+        transactionalUniAsserter.<Reservation>assertThat(
+            reservation::persist, r -> {
+                Assertions.assertNotNull(r.getId());
+                transactionalUniAsserter.putData("reservation.id", r.getId());
+            });
+        transactionalUniAsserter.assertEquals(() -> {
+            Log.info("Using a lambda instead of Reservation::count to avoid Panache method reference issues in reactive context");
+            return Reservation.count();
+        }, 1L);
+        transactionalUniAsserter.assertThat(() -> Reservation.<Reservation>findById(
+                transactionalUniAsserter.getData("reservation.id")),
+            persistedReservation -> {
+                Assertions.assertNotNull(persistedReservation);
+                Assertions.assertEquals(reservation.getCarId(), persistedReservation.getCarId());
+            });
     }
 }

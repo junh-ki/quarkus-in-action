@@ -7,6 +7,7 @@ import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.smallrye.mutiny.Uni;
 import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.GraphQLInventoryClient;
 import org.acme.reservation.entity.Reservation;
@@ -37,7 +38,8 @@ class ReservationResourceTest {
         // Arrange
         final GraphQLInventoryClient graphQLInventoryClientMock = Mockito.mock(GraphQLInventoryClient.class);
         Mockito.when(graphQLInventoryClientMock.allCars())
-            .thenReturn(Collections.singletonList(new Car(1L, "ABC123", "Peugeot", "406")));
+            .thenReturn(Uni.createFrom()
+                .item(Collections.singletonList(new Car(1L, "ABC123", "Peugeot", "406"))));
         QuarkusMock.installMockForType(graphQLInventoryClientMock, GraphQLInventoryClient.class);
         final String startDate = "2022-01-01";
         final String endDate = "2022-01-10";
