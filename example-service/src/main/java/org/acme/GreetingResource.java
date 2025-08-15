@@ -1,6 +1,7 @@
 package org.acme;
 
 import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import io.smallrye.mutiny.Multi;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -17,6 +18,15 @@ public class GreetingResource {
 
     @ConfigProperty(name = "greeting")
     String greeting;
+
+    @GET
+    @Path("/virtualThread")
+    @RunOnVirtualThread
+    public String virtualThread() {
+        final String message = "Running on " + Thread.currentThread().getName();
+        Log.info(message);
+        return message;
+    }
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
