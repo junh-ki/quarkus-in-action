@@ -10,11 +10,18 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import java.security.Principal;
+import java.time.Duration;
+import java.time.Instant;
 
 @Path("/hello")
 public class GreetingResource {
+
+    private static final String CHANNEL_TICKS = "ticks";
+    private static final String CHANNEL_TIMES = "times";
 
     @ConfigProperty(name = "greeting")
     String greeting;
@@ -44,6 +51,24 @@ public class GreetingResource {
             .subscribe()
             .with(string -> Log.info("Subscriber received " + string));
         return this.greeting;
+    }
+
+    @Outgoing(CHANNEL_TICKS)
+    public Multi<Long> aFewTicks() {
+        return Multi.createFrom()
+            .ticks().every(Duration.ofSeconds(1))
+            .select().first(5);
+    }
+
+    @Incoming(CHANNEL_TICKS)
+    @Outgoing(CHANNEL_TIMES)
+    public Multi<String> processor(final Multi<Long> ticks) {
+        return ticks.map(tick -> Instant.now().toString());
+    }
+
+    @Incoming(CHANNEL_TIMES)
+    public void consumer(final String payload) {
+        Log.info(payload);
     }
 
     @GET
