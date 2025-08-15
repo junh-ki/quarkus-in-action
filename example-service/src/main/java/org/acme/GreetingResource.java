@@ -1,5 +1,7 @@
 package org.acme;
 
+import io.quarkus.logging.Log;
+import io.smallrye.mutiny.Multi;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -19,6 +21,18 @@ public class GreetingResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
+        Multi.createFrom().items("a", "b", "c")
+            .onItem()
+            .transform(String::toUpperCase)
+            .onItem()
+            .invoke(string -> Log.info("Intermediate stage " + string))
+            .onItem()
+            .transform(string -> string + " item")
+            .filter(string -> !string.startsWith("B"))
+            .onCompletion()
+            .invoke(() -> Log.info("Stream completed"))
+            .subscribe()
+            .with(string -> Log.info("Subscriber received " + string));
         return this.greeting;
     }
 
