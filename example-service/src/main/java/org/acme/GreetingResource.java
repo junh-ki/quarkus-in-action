@@ -3,6 +3,8 @@ package org.acme;
 import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import io.smallrye.mutiny.Multi;
+import io.smallrye.reactive.messaging.annotations.Broadcast;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -10,6 +12,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
@@ -25,6 +28,10 @@ public class GreetingResource {
 
     @ConfigProperty(name = "greeting")
     String greeting;
+
+    @Inject
+    @Channel(CHANNEL_TICKS)
+    Multi<Long> ticks;
 
     @GET
     @Path("/virtualThread")
@@ -53,11 +60,12 @@ public class GreetingResource {
         return this.greeting;
     }
 
+    @Broadcast
     @Outgoing(CHANNEL_TICKS)
     public Multi<Long> aFewTicks() {
         return Multi.createFrom()
-            .ticks().every(Duration.ofSeconds(1))
-            .select().first(5);
+            .ticks().every(Duration.ofSeconds(2))
+            .select().first(30);
     }
 
     @Incoming(CHANNEL_TICKS)
@@ -69,6 +77,13 @@ public class GreetingResource {
     @Incoming(CHANNEL_TIMES)
     public void consumer(final String payload) {
         Log.info(payload);
+    }
+
+    @GET
+    @Path("/consume")
+    @Produces(MediaType.SERVER_SENT_EVENTS)
+    public Multi<Long> sseTicks() {
+        return this.ticks;
     }
 
     @GET
