@@ -4,6 +4,7 @@ import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.logging.Log;
 import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.reactive.messaging.MutinyEmitter;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -12,10 +13,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
+import org.acme.reservation.billing.Invoice;
 import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.GraphQLInventoryClient;
 import org.acme.reservation.rental.RentalClient;
 import org.acme.reservation.entity.Reservation;
+import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -31,10 +34,16 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 public class ReservationResource {
 
+    private static final double STANDARD_RATE_PER_DAY = 19.99;
     private final GraphQLInventoryClient graphQLInventoryClient;
     private final RentalClient rentalClient;
+
     @Inject
     SecurityContext securityContext;
+
+    @Inject
+    @Channel("invoices")
+    MutinyEmitter<Invoice> invoiceEmitter;
 
     // Quarkus CDI doesn't inject qualifiers like @RestClient automatically with Lombok-generated constructors.
     public ReservationResource(
@@ -74,12 +83,20 @@ public class ReservationResource {
         return reservation.<Reservation>persist().onItem()
             .call(persistedReservation -> {
                 Log.info("Successfully reserved reservation " + persistedReservation);
+                final Uni<Void> invoiceUni = this.invoiceEmitter
+                    .send(new Invoice(reservation, STANDARD_RATE_PER_DAY))
+                    .onFailure()
+                    .invoke(throwable -> Log.errorf(
+                        "Couldn't create invoice for %s. %s&n",
+                        persistedReservation,
+                        throwable.getMessage()));
                 if (persistedReservation.getStartDay().equals(LocalDate.now())) {
-                    return this.rentalClient.start(persistedReservation.getUserId(), persistedReservation.getId())
+                    return invoiceUni.chain(() -> this.rentalClient.start(
+                            persistedReservation.getUserId(), persistedReservation.getId())
                         .onItem().invoke(rental -> Log.info("Successfully started rental: " + rental))
-                        .replaceWith(persistedReservation);
+                        .replaceWith(persistedReservation));
                 }
-                return Uni.createFrom().item(persistedReservation);
+                return invoiceUni.replaceWith(persistedReservation);
             });
     }
 
