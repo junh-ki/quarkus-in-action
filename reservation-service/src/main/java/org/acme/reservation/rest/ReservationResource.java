@@ -24,6 +24,7 @@ import org.jboss.resteasy.reactive.RestQuery;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,7 +85,7 @@ public class ReservationResource {
             .call(persistedReservation -> {
                 Log.info("Successfully reserved reservation " + persistedReservation);
                 final Uni<Void> invoiceUni = this.invoiceEmitter
-                    .send(new Invoice(reservation, STANDARD_RATE_PER_DAY))
+                    .send(new Invoice(reservation, computePrice(reservation)))
                     .onFailure()
                     .invoke(throwable -> Log.errorf(
                         "Couldn't create invoice for %s. %s&n",
@@ -98,6 +99,11 @@ public class ReservationResource {
                 }
                 return invoiceUni.replaceWith(persistedReservation);
             });
+    }
+
+    private double computePrice(final Reservation reservation) {
+        final int rentalDays = (int) ChronoUnit.DAYS.between(reservation.getStartDay(), reservation.getEndDay()) + 1;
+        return rentalDays * STANDARD_RATE_PER_DAY;
     }
 
     @GET
