@@ -25,7 +25,7 @@ import java.util.List;
 public class RentalResource {
 
     private static final double STANDARD_REFUND_RATE_PER_DAY = -10.99;
-    private static final double STANDARD_PRICE_FOR_PROLONGED_DAY = 25.99;
+    protected static final double STANDARD_PRICE_FOR_PROLONGED_DAY = 25.99;
 
     @Inject
     @RestClient

@@ -1,10 +1,12 @@
 package org.acme.rental.reservation;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDate;
 
-@Data
+@Getter
+@Builder
 public class Reservation {
 
     private LocalDate endDay;
