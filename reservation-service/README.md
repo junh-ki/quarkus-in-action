@@ -77,3 +77,10 @@ If you want to learn more about building native executables, please consult <htt
    ```cmd
    sdk use java 21.0.3-zulu
    ```
+
+## Kafka verification
+```
+brew install kafka
+kafka-console-consumer --bootstrap-server localhost:44131 --topic invoices-adjust --from-beginning
+```
+-> The port number would be different each time so you should double-check it by running `docker ps`.
