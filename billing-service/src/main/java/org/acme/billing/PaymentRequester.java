@@ -5,6 +5,8 @@ import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.acme.billing.data.InvoiceConfirmation;
 import org.acme.billing.model.Invoice;
+import org.acme.billing.model.InvoiceAdjust;
+import org.eclipse.microprofile.reactive.messaging.Acknowledgment;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
@@ -24,6 +26,15 @@ public class PaymentRequester {
         return new InvoiceConfirmation(invoice, true);
     }
 
+    @Blocking
+    @Incoming("invoices-adjust")
+    @Acknowledgment(Acknowledgment.Strategy.PRE_PROCESSING)
+    public void requestAdjustment(final InvoiceAdjust invoiceAdjust) {
+        Log.info("Received invoice adjustment: " + invoiceAdjust);
+        payment(invoiceAdjust.getUserId(), invoiceAdjust.getPrice(), invoiceAdjust);
+        Log.infof("Invoice adjustment %s is paid.", invoiceAdjust);
+    }
+
     private void payment(final String user, final double price, final Object data) {
         Log.infof("Request for payment user: %s, price: %f, data: %s", user, price, data);
         try {
@@ -32,13 +43,12 @@ public class PaymentRequester {
                 invoice.setPaid(true);
                 invoice.update();
             }
+            if (data instanceof InvoiceAdjust invoiceAdjust) {
+                invoiceAdjust.setPaid(true);
+                invoiceAdjust.persist();
+            }
         } catch (final InterruptedException interruptedException) {
             Log.error("Sleep interrupted.", interruptedException);
         }
-    }
-
-    @Incoming("invoices-confirmations")
-    public void consume(final InvoiceConfirmation invoiceConfirmation) {
-        Log.info(invoiceConfirmation);
     }
 }

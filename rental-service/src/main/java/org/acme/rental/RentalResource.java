@@ -41,14 +41,24 @@ public class RentalResource {
     public Rental start(@PathParam("userId") final String userId,
                         @PathParam("reservationId") final Long reservationId) {
         Log.infof("Starting rental for %s with reservation %s", userId, reservationId);
-        final Rental rental = Rental.builder()
-            .userId(userId)
-            .reservationId(reservationId)
-            .startDate(LocalDate.now())
-            .active(true)
-            .build();
-        rental.persist();
-        return rental;
+        return Rental.findByUserAndReservationIdsOptional(userId, reservationId)
+            .map(rental -> {
+                // received the corresponding InvoiceConfirmation before
+                rental.setActive(true);
+                rental.update();
+                return rental;
+            })
+            .orElseGet(() -> {
+                // rental starting right now before payment
+                final Rental rental = Rental.builder()
+                    .userId(userId)
+                    .reservationId(reservationId)
+                    .startDate(LocalDate.now())
+                    .active(true)
+                    .build();
+                rental.persist();
+                return rental;
+            });
     }
 
     @PUT
@@ -59,6 +69,10 @@ public class RentalResource {
         Log.infof("Ending rental for %s with reservation %s", userId, reservationId);
         return Rental.findByUserAndReservationIdsOptional(userId, reservationId)
             .map(rental -> {
+                if (!rental.isPaid()) {
+                    Log.warn("Rental is not paid: " + rental);
+                    // trigger error processing
+                }
                 final LocalDate today = LocalDate.now();
                 final Reservation reservation = this.reservationClient.getById(reservationId);
                 if (!reservation.getEndDay().isEqual(today)) {

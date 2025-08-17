@@ -26,6 +26,7 @@ public class Rental extends PanacheMongoEntityBase {
     private LocalDate startDate;
     private LocalDate endDate;
     private boolean active;
+    private boolean paid;
 
     @Nonnull
     @Override
@@ -37,6 +38,7 @@ public class Rental extends PanacheMongoEntityBase {
                 + ", startDate=" + this.getStartDate()
                 + ", endDate=" + this.getEndDate()
                 + ", active=" + this.isActive()
+                + ", paid=" + this.isPaid()
                 + "}";
     }
 
