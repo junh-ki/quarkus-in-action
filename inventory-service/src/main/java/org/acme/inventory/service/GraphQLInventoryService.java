@@ -1,5 +1,6 @@
 package org.acme.inventory.service;
 
+import io.micrometer.core.annotation.Counted;
 import io.quarkus.logging.Log;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class GraphQLInventoryService {
 
     @Mutation
     @Transactional
+    @Counted(description = "Number of car registrations")
     public Car register(final Car car) {
         this.carRepository.persist(car);
         Log.info("Persisting " + car);
