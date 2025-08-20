@@ -2,6 +2,7 @@ package org.acme.reservation.rest;
 
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction;
 import io.quarkus.logging.Log;
+import io.smallrye.faulttolerance.api.BeforeRetry;
 import io.smallrye.graphql.client.GraphQLClient;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.reactive.messaging.MutinyEmitter;
@@ -14,10 +15,14 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import org.acme.reservation.billing.Invoice;
+import org.acme.reservation.faulttolerance.EmptyListFallback;
+import org.acme.reservation.faulttolerance.LogBeforeRetry;
 import org.acme.reservation.inventory.Car;
 import org.acme.reservation.inventory.GraphQLInventoryClient;
 import org.acme.reservation.rental.RentalClient;
 import org.acme.reservation.entity.Reservation;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.resteasy.reactive.RestQuery;
@@ -56,6 +61,9 @@ public class ReservationResource {
 
     @GET
     @Path("availability")
+    @Retry(maxRetries = 25, delay = 1000)
+    @BeforeRetry(LogBeforeRetry.class)
+    @Fallback(value = EmptyListFallback.class)
     public Uni<List<Car>> availability(@RestQuery final LocalDate startDate,
                                        @RestQuery final LocalDate endDate) {
         final Uni<List<Car>> availableCarsUni = this.graphQLInventoryClient.allCars();
