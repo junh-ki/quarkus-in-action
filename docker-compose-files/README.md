@@ -9,4 +9,16 @@ For the tracing observability, you can go to the Jaeger UI: http://localhost:166
 # Docker Compose for Infra (Not dependent on the Dev Services containers)
 
 1. Run docker-compose: `docker-compose -f docker-compose-infra.yml up`
-2. Run all car rental microservices
+2. Verify all 12 containers are running: `docker ps --format "table {{.Names | printf \"%-20s\"}} {{.Image}}"`
+   - keycloak
+   - kafka
+   - zookeeper
+   - postgres-keycloak
+   - mongodb-rental
+   - rabbitmq
+   - postgres-reservation
+   - jaeger
+   - mongodb-billing
+   - prometheus
+   - mysql
+   - grafana

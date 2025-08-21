@@ -102,7 +102,7 @@ services:
 
   # Kafka
   zookeeper:
-    image: quay.io/strimzi/kafka:latest-kafka-4.0.0
+    image: quay.io/strimzi/kafka:latest-kafka-3.9.0
     container_name: zookeeper
     command: [
       "sh", "-c",
@@ -114,7 +114,7 @@ services:
       LOG_DIR: /tmp/logs
 
   kafka:
-    image: quay.io/strimzi/kafka:latest-kafka-4.0.0
+    image: quay.io/strimzi/kafka:latest-kafka-3.9.0
     container_name: kafka
     command: [
       "sh", "-c",
