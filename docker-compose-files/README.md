@@ -5,3 +5,8 @@
 
 For the metrics observability, you can go to the Grafana page: http://localhost:3000/ (user & password: admin)
 For the tracing observability, you can go to the Jaeger UI: http://localhost:16686/search
+
+# Docker Compose for Infra (Not dependent on the Dev Services containers)
+
+1. Run docker-compose: `docker-compose -f docker-compose-infra.yml up`
+2. Run all car rental microservices
