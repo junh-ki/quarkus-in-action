@@ -7,7 +7,7 @@ import jakarta.ws.rs.PathParam;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 @Path("/rental")
-@RegisterRestClient
+@RegisterRestClient(configKey = "rental")
 public interface RentalClient {
 
     @POST
