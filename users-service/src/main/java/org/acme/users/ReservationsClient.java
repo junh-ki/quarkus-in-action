@@ -14,7 +14,7 @@ import java.util.Collection;
 
 @AccessToken
 @Path("reservation")
-@RegisterRestClient
+@RegisterRestClient(configKey = "reservations")
 public interface ReservationsClient {
 
     @GET
