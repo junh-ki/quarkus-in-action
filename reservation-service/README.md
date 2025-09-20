@@ -84,3 +84,47 @@ brew install kafka
 kafka-console-consumer --bootstrap-server localhost:44131 --topic invoices-adjust --from-beginning
 ```
 -> The port number would be different each time so you should double-check it by running `docker ps`.
+
+## Containerization
+- To build and push an image (Docker by default) - only works if your local username aligns with your Docker Hub name and also you are logged in to Docker Hub.
+   ```
+   quarkus build \
+   -Dquarkus.container-image.build=true \
+   -Dquarkus.container-image.push=true \
+   -Dquarkus.container-image.registry=docker.io \
+   -Dquarkus.container-image.group=mrki102 \
+   -Dquarkus.container-image.name=reservation-service \
+   -Dquarkus.container-image.tag=1.0.0
+   ```
+   or
+   ```
+   ./mvnw clean package \
+   -Dquarkus.container-image.build=true \
+   -Dquarkus.container-image.push=true \
+   -Dquarkus.container-image.registry=docker.io \
+   -Dquarkus.container-image.group=mrki102 \
+   -Dquarkus.container-image.name=reservation-service \
+   -Dquarkus.container-image.tag=1.0.0
+   ```
+- To explicitly set the registry with the precedence over docker.io
+   ```
+   quarkus build \
+   -Dquarkus.container-image.build=true \
+   -Dquarkus.container-image.push=true \
+   -Dquarkus.container-image.registry=docker.io \
+   -Dquarkus.container-image.group=mrki102 \
+   -Dquarkus.container-image.name=reservation-service \
+   -Dquarkus.container-image.tag=1.0.0
+   -Dquarkus.container-image.image=registry.io/username/reservation-service:1.0.0
+   ```
+  or
+   ```
+   ./mvnw clean package \
+   -Dquarkus.container-image.build=true \
+   -Dquarkus.container-image.push=true \
+   -Dquarkus.container-image.registry=docker.io \
+   -Dquarkus.container-image.group=mrki102 \
+   -Dquarkus.container-image.name=reservation-service \
+   -Dquarkus.container-image.tag=1.0.0
+   -Dquarkus.container-image.image=registry.io/username/reservation-service:1.0.0
+   ```
